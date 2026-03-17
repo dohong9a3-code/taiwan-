@@ -1,205 +1,799 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<title>漢字快打王</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>臺灣文化詞彙冒險 | Taiwan Culture Vocab Adventure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet"/>
+
+<!-- ==================== VOCABULARY ====================
+     Add, remove, or edit questions here easily.
+     Each entry: { word, pinyin, meaning (English), category }
+-->
+<script>
+const VOCAB = [
+  {word:"夜市",pinyin:"yèshì",meaning:"night market / 夜市",category:"Food & Drink 飲食"},
+  {word:"珍珠奶茶",pinyin:"zhēnzhū nǎichá",meaning:"bubble milk tea / 珍珠奶茶",category:"Drinks 飲料"},
+  {word:"廟",pinyin:"miào",meaning:"temple / shrine / 廟宇",category:"Religion 信仰"},
+  {word:"捷運",pinyin:"jiéyùn",meaning:"MRT / metro system / 捷運",category:"Transport 交通"},
+  {word:"便利商店",pinyin:"biànlì shāngdiàn",meaning:"convenience store / 便利店",category:"Shopping 購物"},
+  {word:"小籠包",pinyin:"xiǎolóngbāo",meaning:"soup dumplings / 小籠包",category:"Food 飲食"},
+  {word:"阿里山",pinyin:"Ālǐshān",meaning:"Alishan Mountain / 阿里山",category:"Landmark 地名"},
+  {word:"故宮",pinyin:"Gùgōng",meaning:"National Palace Museum / 故宮博物院",category:"Culture 文化"},
+  {word:"鳳梨酥",pinyin:"fènglísū",meaning:"pineapple cake (souvenir) / 鳳梨酥",category:"Specialty 特產"},
+  {word:"淡水",pinyin:"Dànshuǐ",meaning:"Danshui (coastal town) / 淡水",category:"Landmark 地名"},
+  {word:"九份",pinyin:"Jiǔfèn",meaning:"Jiufen (mountain village) / 九份",category:"Landmark 地名"},
+  {word:"原住民",pinyin:"yuánzhùmín",meaning:"indigenous peoples / 原住民",category:"Culture 文化"},
+  {word:"太魯閣",pinyin:"Tàilǔgé",meaning:"Taroko Gorge / 太魯閣",category:"Landmark 地名"},
+  {word:"媽祖",pinyin:"Māzǔ",meaning:"Mazu (sea goddess) / 媽祖",category:"Religion 信仰"},
+  {word:"烤地瓜",pinyin:"kǎo dìguā",meaning:"roasted sweet potato / 烤地瓜",category:"Food 飲食"},
+  {word:"腳踏車",pinyin:"jiǎotàchē",meaning:"bicycle / 自行車",category:"Transport 交通"},
+  {word:"高鐵",pinyin:"gāotiě",meaning:"high-speed rail (HSR) / 高速鐵路",category:"Transport 交通"},
+  {word:"紅包",pinyin:"hóngbāo",meaning:"red envelope (gift money) / 紅包",category:"Customs 習俗"},
+  {word:"燈籠",pinyin:"dēnglóng",meaning:"paper lantern / 燈籠",category:"Festival 節慶"},
+  {word:"廟會",pinyin:"miàohuì",meaning:"temple fair / festival / 廟會",category:"Culture 文化"},
+];
+</script>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: #f0f8ff;
-    margin: 0;
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#D90429;--yellow:#FFD166;--green:#06A77D;--blue:#118AB2;
+  --dark:#1a1a2e;--panel:rgba(255,255,255,0.08);--shadow:0 8px 32px rgba(0,0,0,.4);
 }
+body{font-family:'Noto Sans TC',sans-serif;background:var(--dark);color:#fff;min-height:100vh;overflow-x:hidden}
 
-.container {
-    padding: 20px;
-}
+/* ===== SCREENS ===== */
+.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:20px;position:relative}
+.screen.active{display:flex}
 
-h1 {
-    font-size: 40px;
-}
+/* ===== BG GRADIENT ===== */
+#screen-home{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)}
+#screen-level1,#screen-result1{background:linear-gradient(135deg,#0f3460 0%,#533483 60%,#1a1a2e 100%)}
+#screen-level2{background:#5c94fc;overflow:hidden}
 
-#pinyin {
-    font-size: 36px;
-    margin: 20px;
-}
+/* ===== HOME ===== */
+.home-title{font-family:'Fredoka One',cursive;font-size:clamp(2rem,6vw,4rem);text-align:center;
+  background:linear-gradient(90deg,var(--yellow),var(--red),var(--yellow));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  text-shadow:none;margin-bottom:8px;line-height:1.2}
+.home-sub{font-size:1rem;color:rgba(255,255,255,.7);text-align:center;margin-bottom:36px}
+.flag-icons{font-size:2.5rem;text-align:center;margin-bottom:24px;animation:bounce 2s infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.card{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);
+  border-radius:20px;padding:32px;width:100%;max-width:440px;box-shadow:var(--shadow)}
+.input-group{margin-bottom:20px}
+.input-group label{display:block;margin-bottom:8px;font-size:.9rem;color:var(--yellow);font-weight:700}
+.input-group input{width:100%;padding:12px 16px;border-radius:12px;border:2px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);color:#fff;font-size:1rem;font-family:inherit;transition:.2s}
+.input-group input:focus{outline:none;border-color:var(--yellow)}
 
-.option {
-    display: block;
-    margin: 10px auto;
-    padding: 15px;
-    width: 200px;
-    background: white;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 24px;
-    border: 2px solid #ccc;
-}
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 32px;border-radius:50px;border:none;cursor:pointer;
+  font-size:1rem;font-weight:700;font-family:inherit;transition:all .2s;width:100%}
+.btn-primary{background:linear-gradient(135deg,var(--red),#ff4d6d);color:#fff;box-shadow:0 4px 20px rgba(217,4,41,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(217,4,41,.5)}
+.btn-green{background:linear-gradient(135deg,var(--green),#04d98b);color:#fff}
+.btn-green:hover{transform:translateY(-2px)}
+.btn-blue{background:linear-gradient(135deg,var(--blue),#06b6d4);color:#fff}
+.btn-blue:hover{transform:translateY(-2px)}
 
-.option:hover {
-    background: #e0f7fa;
-}
+/* ===== LEVEL 1 ===== */
+.quiz-header{width:100%;max-width:700px;display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.quiz-score{font-size:1.2rem;font-weight:700;color:var(--yellow)}
+.quiz-lives{font-size:1.4rem}
+.progress-text{font-size:.9rem;color:rgba(255,255,255,.6)}
 
-#score, #timer {
-    font-size: 20px;
-    margin: 10px;
-}
+.timer-wrap{width:100%;max-width:700px;margin-bottom:20px}
+.timer-bar-bg{width:100%;height:8px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden}
+.timer-bar{height:100%;background:linear-gradient(90deg,var(--green),var(--yellow));border-radius:4px;
+  transition:width .1s linear,background .1s}
 
-button {
-    padding: 10px 20px;
-    font-size: 20px;
-    cursor: pointer;
+.quiz-card{background:var(--panel);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);
+  border-radius:24px;padding:32px;width:100%;max-width:700px;box-shadow:var(--shadow)}
+.listen-btn{width:90px;height:90px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--blue),#06b6d4);font-size:2.5rem;
+  margin:0 auto 28px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 0 rgba(17,138,178,.4);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(17,138,178,.6)}70%{box-shadow:0 0 0 16px rgba(17,138,178,0)}100%{box-shadow:0 0 0 0 rgba(17,138,178,0)}}
+.listen-hint{text-align:center;font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:24px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.option-btn{padding:18px 12px;border-radius:14px;border:2px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.07);color:#fff;font-size:1.5rem;font-family:inherit;
+  cursor:pointer;transition:all .2s;font-weight:700}
+.option-btn:hover:not(:disabled){background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.5);transform:scale(1.02)}
+.option-btn.correct{background:rgba(6,167,125,.3);border-color:var(--green);animation:correct-flash .4s ease}
+.option-btn.wrong{background:rgba(217,4,41,.3);border-color:var(--red)}
+@keyframes correct-flash{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.option-btn:disabled{cursor:default}
+
+/* ===== ANSWER MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;
+  align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal-box{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid rgba(255,255,255,.2);
+  border-radius:24px;padding:36px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal-emoji{font-size:3.5rem;margin-bottom:12px}
+.modal-result{font-size:1.3rem;font-weight:700;margin-bottom:20px}
+.modal-word{font-size:3rem;font-weight:900;margin-bottom:8px;color:var(--yellow)}
+.modal-pinyin{font-size:1.2rem;color:rgba(255,255,255,.7);margin-bottom:6px;letter-spacing:2px}
+.modal-meaning{font-size:1rem;color:rgba(255,255,255,.6);margin-bottom:8px}
+.modal-category{display:inline-block;padding:4px 12px;border-radius:20px;background:rgba(255,209,102,.15);
+  color:var(--yellow);font-size:.8rem;margin-bottom:24px}
+.modal-points{font-size:1.1rem;font-weight:700;color:var(--green);margin-bottom:24px}
+
+/* ===== RESULT SCREEN ===== */
+.result-card{background:var(--panel);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.15);
+  border-radius:24px;padding:36px;width:100%;max-width:560px;text-align:center;box-shadow:var(--shadow)}
+.result-title{font-family:'Fredoka One',cursive;font-size:2.5rem;color:var(--yellow);margin-bottom:8px}
+.result-score-big{font-size:5rem;font-weight:900;background:linear-gradient(135deg,var(--yellow),var(--red));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.result-max{font-size:1rem;color:rgba(255,255,255,.5);margin-bottom:28px}
+.leaderboard{text-align:left;margin-bottom:28px}
+.lb-title{font-size:1rem;font-weight:700;color:var(--yellow);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.lb-row{display:flex;align-items:center;padding:10px 14px;border-radius:12px;margin-bottom:6px;
+  background:rgba(255,255,255,.06);gap:12px;transition:.2s}
+.lb-row.me{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.3)}
+.lb-rank{font-size:1.2rem;width:30px;text-align:center}
+.lb-name{flex:1;font-weight:700}
+.lb-pts{font-size:1rem;color:var(--yellow);font-weight:700}
+
+/* ===== LEVEL 2 - MARIO ===== */
+#screen-level2{padding:0;position:relative;background:#5c94fc}
+.mario-ui{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+  align-items:center;padding:12px 20px;z-index:10;background:rgba(0,0,0,.3)}
+.mario-score{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--yellow)}
+.mario-lives{font-size:1.4rem;letter-spacing:4px}
+.mario-canvas-wrap{width:100%;height:100vh;position:relative}
+.sky-bg,.clouds{z-index:0}
+#mario-canvas{width:100%;height:100%;display:block;position:relative;z-index:1}
+
+/* Question popup */
+.quiz-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:linear-gradient(135deg,#1a1a2e,#0f3460);border:2px solid var(--yellow);
+  border-radius:24px;padding:32px;max-width:480px;width:90%;z-index:20;display:none;
+  box-shadow:0 20px 60px rgba(0,0,0,.8);text-align:center}
+.quiz-popup.show{display:block;animation:pop-in .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop-in{from{transform:translate(-50%,-50%) scale(0.7);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.popup-hanzi{font-size:3rem;font-weight:900;color:var(--yellow);margin-bottom:6px}
+.popup-hint{font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:20px}
+.popup-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0}
+.popup-opt{padding:14px 10px;border-radius:12px;border:2px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.07);color:#fff;font-size:1.1rem;font-family:inherit;
+  cursor:pointer;transition:.2s;font-weight:700}
+.popup-opt:hover:not(:disabled){background:rgba(255,255,255,.15);transform:scale(1.03)}
+.popup-opt.correct{background:rgba(6,167,125,.4);border-color:var(--green)}
+.popup-opt.wrong{background:rgba(217,4,41,.3);border-color:var(--red)}
+
+/* Game Over / Win */
+.overlay-screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  flex-direction:column;z-index:30;background:rgba(0,0,0,.85);backdrop-filter:blur(6px)}
+.overlay-screen.show{display:flex}
+.overlay-title{font-family:'Fredoka One',cursive;font-size:4rem;margin-bottom:12px;text-align:center}
+.overlay-sub{font-size:1.2rem;color:rgba(255,255,255,.7);margin-bottom:32px;text-align:center}
+.overlay-score{font-size:2rem;font-weight:900;color:var(--yellow);margin-bottom:32px}
+
+/* ===== SCROLLING BG (CSS only) ===== */
+.sky-bg{position:absolute;inset:0;background:linear-gradient(180deg,#5c94fc 0%,#87ceeb 100%)}
+.clouds{position:absolute;top:40px;left:0;width:200%;height:80px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='80'%3E%3Cellipse cx='80' cy='50' rx='60' ry='25' fill='white' opacity='.8'/%3E%3Cellipse cx='100' cy='40' rx='45' ry='20' fill='white' opacity='.9'/%3E%3Cellipse cx='280' cy='55' rx='50' ry='20' fill='white' opacity='.7'/%3E%3Cellipse cx='300' cy='45' rx='35' ry='16' fill='white' opacity='.85'/%3E%3C/svg%3E") repeat-x;
+  animation:scroll-clouds 18s linear infinite}
+@keyframes scroll-clouds{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:500px){
+  .options-grid{grid-template-columns:1fr}
+  .popup-options{grid-template-columns:1fr}
 }
 </style>
 </head>
-
 <body>
 
-<div class="container">
-
-    <h1>漢字快打王</h1>
-
-    <div id="startScreen">
-        <p>最高分：<span id="highScore">0</span></p>
-        <button onclick="startGame()">開始遊戲</button>
+<!-- ========== HOME ========== -->
+<div id="screen-home" class="screen active">
+  <div class="flag-icons">🇹🇼 🏮 🧋 🎎</div>
+  <h1 class="home-title">臺灣文化詞彙冒險</h1>
+  <p class="home-sub">Taiwan Culture Vocabulary Adventure · A1–A2</p>
+  <div class="card">
+    <div class="input-group">
+      <label for="player-name">👤 Your Name / 您的名字</label>
+      <input type="text" id="player-name" placeholder="Enter your name..." maxlength="20" autocomplete="off"/>
     </div>
+    <button class="btn btn-primary" id="btn-start">🚀 Start / 開始</button>
+    <p style="text-align:center;margin-top:16px;font-size:.8rem;color:rgba(255,255,255,.4)">
+      🎧 Level 1: Listen &amp; Choose · 🍄 Level 2: Mario Adventure
+    </p>
+  </div>
+</div>
 
-    <div id="gameScreen" style="display:none;">
-        <div id="timer">時間：60</div>
-        <div id="score">分數：0</div>
-        <div id="pinyin"></div>
-        <div id="options"></div>
+<!-- ========== LEVEL 1 ========== -->
+<div id="screen-level1" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-score">⭐ <span id="score-display">0</span> pts</div>
+    <div class="progress-text">Q <span id="q-num">1</span> / 10</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="progress-text" id="timer-text">⏱ 30s</div>
+      <button class="btn btn-green" id="btn-skip-to-lvl2" style="width:auto;padding:8px 16px;font-size:.85rem">Skip → Level 2 🍄</button>
     </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
+  </div>
+  <div class="quiz-card">
+    <button class="listen-btn" id="listen-btn" title="Click to listen">🔊</button>
+    <p class="listen-hint">Click 🔊 to listen, then choose the correct word ↓</p>
+    <div class="options-grid" id="options-grid"></div>
+  </div>
+</div>
 
-    <div id="endScreen" style="display:none;">
-        <h2>遊戲結束！</h2>
-        <p>你的分數：<span id="finalScore"></span></p>
-        <button onclick="startGame()">再玩一次</button>
+<!-- ========== RESULT 1 ========== -->
+<div id="screen-result1" class="screen">
+  <div class="result-card">
+    <div class="result-title">🎉 Level 1 Results</div>
+    <div class="result-score-big" id="final-score">0</div>
+    <div class="result-max">/ 50 points</div>
+    <div class="leaderboard">
+      <div class="lb-title">🏆 Leaderboard</div>
+      <div id="leaderboard-list"></div>
     </div>
+    <button class="btn btn-green" id="btn-to-level2">🍄 Continue to Level 2: Mario!</button>
+  </div>
+</div>
 
+<!-- ========== LEVEL 2 - MARIO ========== -->
+<div id="screen-level2" class="screen">
+  <div class="mario-ui">
+    <div class="mario-score">🏃 <span id="mario-score-display">0</span>m</div>
+    <div>Level 2: Mario 冒險</div>
+    <div class="mario-lives" id="mario-lives-display">❤️❤️❤️</div>
+  </div>
+  <div class="mario-canvas-wrap">
+    <div class="sky-bg"></div>
+    <div class="clouds"></div>
+    <canvas id="mario-canvas"></canvas>
+  </div>
+
+  <!-- Question Popup -->
+  <div class="quiz-popup" id="quiz-popup">
+    <div style="font-size:2rem;margin-bottom:8px;cursor:pointer" id="popup-audio-btn" title="Listen">🔊</div>
+    <div class="popup-hanzi" id="popup-hanzi"></div>
+    <div class="popup-hint">Choose the correct meaning / pinyin:</div>
+    <div class="popup-options" id="popup-options"></div>
+  </div>
+
+  <!-- Game Over -->
+  <div class="overlay-screen" id="gameover-screen">
+    <div class="overlay-title" style="color:var(--red)">💔 Game Over!</div>
+    <div class="overlay-sub">Mario has run out of lives...</div>
+    <div class="overlay-score">Distance: <span id="go-distance">0</span>m</div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-blue" onclick="restartMario()" style="width:auto">🔄 Play Again</button>
+      <button class="btn btn-primary" onclick="goHome()" style="width:auto">🏠 Home</button>
+    </div>
+  </div>
+
+  <!-- Win -->
+  <div class="overlay-screen" id="win-screen">
+    <div class="overlay-title" style="color:var(--yellow)">🎊 You Win!</div>
+    <div class="overlay-sub">Mario conquered every obstacle! 🍄</div>
+    <div class="overlay-score">🏆 Score: <span id="win-score">0</span></div>
+    <button class="btn btn-primary" onclick="goHome()" style="width:180px;margin-top:8px">🏠 Home</button>
+  </div>
+</div>
+
+<!-- ========== ANSWER MODAL ========== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-emoji" id="modal-emoji"></div>
+    <div class="modal-result" id="modal-result"></div>
+    <div class="modal-word" id="modal-word"></div>
+    <div class="modal-pinyin" id="modal-pinyin"></div>
+    <div class="modal-meaning" id="modal-meaning"></div>
+    <div class="modal-category" id="modal-category"></div>
+    <div class="modal-points" id="modal-points"></div>
+    <button class="btn btn-blue" id="modal-next-btn" style="width:180px">Next / 下一題 →</button>
+  </div>
 </div>
 
 <script>
+// VOCAB is defined at the top of <head> for easy editing.
 
-const wordList = [
-  { pinyin: "nǐ hǎo", hanzi: "你好" },
-  { pinyin: "xiè xie", hanzi: "謝謝" },
-  { pinyin: "zài jiàn", hanzi: "再見" },
-  { pinyin: "shì", hanzi: "是" },
-  { pinyin: "bù shì", hanzi: "不是" },
-  { pinyin: "wǒ", hanzi: "我" },
-  { pinyin: "nǐ", hanzi: "你" },
-  { pinyin: "tā", hanzi: "他" },
-  { pinyin: "shuǐ", hanzi: "水" },
-  { pinyin: "fàn", hanzi: "飯" },
-  { pinyin: "chī", hanzi: "吃" },
-  { pinyin: "hē", hanzi: "喝" },
-  { pinyin: "xué xiào", hanzi: "學校" },
-  { pinyin: "lǎo shī", hanzi: "老師" },
-  { pinyin: "xué shēng", hanzi: "學生" }
-];
-
-let score = 0;
-let time = 60;
-let timerInterval;
-let currentAnswer = "";
-
-function getHighScore() {
-    return localStorage.getItem("highScore") || 0;
+// ==================== UTILS ====================
+function shuffle(arr){return [...arr].sort(()=>Math.random()-.5)}
+function rand4(correct,pool){
+  const others=shuffle(pool.filter(v=>v.word!==correct.word)).slice(0,3);
+  return shuffle([correct,...others]);
+}
+function speak(text){
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='zh-TW';u.rate=0.9;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-function setHighScore(newScore) {
-    localStorage.setItem("highScore", newScore);
+// ==================== STATE ====================
+let playerName='Player';
+let score=0;
+let qIndex=0;
+let currentQ=null;
+let timerInt=null;
+let timeLeft=30;
+let quizQuestions=[];
+
+// ==================== HOME ====================
+document.getElementById('btn-start').addEventListener('click',()=>{
+  const n=document.getElementById('player-name').value.trim();
+  if(!n){document.getElementById('player-name').focus();return;}
+  playerName=n;
+  startLevel1();
+});
+document.getElementById('player-name').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-start').click()});
+
+// Skip to Level 2 button (wired each time Level 1 starts)
+let skipBtnWired=false;
+function wireSkipBtn(){
+  if(skipBtnWired)return;
+  skipBtnWired=true;
+  const btn=document.getElementById('btn-skip-to-lvl2');
+  if(btn)btn.addEventListener('click',()=>{
+    clearInterval(timerInt);
+    transitioning=true;
+    document.getElementById('modal-overlay').classList.remove('show');
+    startLevel2();
+  });
 }
 
-document.getElementById("highScore").innerText = getHighScore();
-
-function startGame() {
-    score = 0;
-    time = 60;
-
-    document.getElementById("startScreen").style.display = "none";
-    document.getElementById("endScreen").style.display = "none";
-    document.getElementById("gameScreen").style.display = "block";
-
-    updateScore();
-    startTimer();
-    nextQuestion();
+// ==================== LEVEL 1 ====================
+let transitioning=false;
+function startLevel1(){
+  score=0;qIndex=0;transitioning=false;skipBtnWired=false;
+  quizQuestions=shuffle(VOCAB).slice(0,10);
+  showScreen('screen-level1');
+  wireSkipBtn();
+  loadQuestion();
 }
 
-function startTimer() {
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
-        time--;
-        document.getElementById("timer").innerText = "時間：" + time;
+function loadQuestion(){
+  if(qIndex>=10){endLevel1();return;}
+  currentQ=quizQuestions[qIndex];
+  document.getElementById('q-num').textContent=qIndex+1;
+  document.getElementById('score-display').textContent=score;
 
-        if (time <= 0) {
-            endGame();
-        }
-    }, 1000);
+  const opts=rand4(currentQ,VOCAB);
+  const grid=document.getElementById('options-grid');
+  grid.innerHTML='';
+  opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='option-btn';
+    b.textContent=opt.word;
+    b.dataset.word=opt.word;
+    b.addEventListener('click',()=>answerQ(opt));
+    grid.appendChild(b);
+  });
+
+  startTimer();
+  // Auto play audio
+  setTimeout(()=>speak(currentQ.word),400);
 }
 
-function nextQuestion() {
-    const random = wordList[Math.floor(Math.random() * wordList.length)];
-    currentAnswer = random.hanzi;
+document.getElementById('listen-btn').addEventListener('click',()=>{if(currentQ)speak(currentQ.word)});
 
-    document.getElementById("pinyin").innerText = random.pinyin;
+function startTimer(){
+  clearInterval(timerInt);
+  timeLeft=30;
+  updateTimerBar();
+  timerInt=setInterval(()=>{
+    if(transitioning){clearInterval(timerInt);return;}
+    timeLeft--;
+    updateTimerBar();
+    if(timeLeft<=0){clearInterval(timerInt);if(!transitioning)timeExpired();}
+  },1000);
+}
+function updateTimerBar(){
+  const bar=document.getElementById('timer-bar');
+  const pct=(timeLeft/30)*100;
+  bar.style.width=pct+'%';
+  document.getElementById('timer-text').textContent='⏱ '+timeLeft+'s';
+  if(pct<40)bar.style.background='linear-gradient(90deg,var(--red),var(--yellow))';
+  else bar.style.background='linear-gradient(90deg,var(--green),var(--yellow))';
+}
+function timeExpired(){if(transitioning)return;disableOptions();showModal(false,0);}
 
-    let options = [random.hanzi];
+function answerQ(chosen){
+  clearInterval(timerInt);
+  disableOptions();
+  const correct=chosen.word===currentQ.word;
+  if(correct){score+=5;document.getElementById('score-display').textContent=score;}
+  // highlight
+  document.querySelectorAll('.option-btn').forEach(b=>{
+    if(b.dataset.word===currentQ.word)b.classList.add('correct');
+    else if(b.dataset.word===chosen.word&&!correct)b.classList.add('wrong');
+  });
+  showModal(correct,correct?5:0);
+}
 
-    while (options.length < 3) {
-        let rand = wordList[Math.floor(Math.random() * wordList.length)].hanzi;
-        if (!options.includes(rand)) {
-            options.push(rand);
-        }
+function disableOptions(){
+  document.querySelectorAll('.option-btn').forEach(b=>{b.disabled=true});
+}
+
+function showModal(correct,pts){
+  document.getElementById('modal-emoji').textContent=correct?'🎉':'😅';
+  document.getElementById('modal-result').textContent=correct?'✅ Correct! 正確！':'❌ Wrong! The answer is: 正確答案是：';
+  document.getElementById('modal-result').style.color=correct?'var(--green)':'var(--red)';
+  document.getElementById('modal-word').textContent=currentQ.word;
+  document.getElementById('modal-pinyin').textContent=currentQ.pinyin;
+  document.getElementById('modal-meaning').textContent='🌏 '+currentQ.meaning;
+  document.getElementById('modal-category').textContent=currentQ.category;
+  document.getElementById('modal-points').textContent=pts>0?'+'+pts+' points ⭐ / 積分':'No points / 無積分';
+  document.getElementById('modal-points').style.color=pts>0?'var(--green)':'var(--red)';
+  document.getElementById('modal-overlay').classList.add('show');
+  speak(currentQ.word);
+}
+
+document.getElementById('modal-next-btn').addEventListener('click',()=>{
+  document.getElementById('modal-overlay').classList.remove('show');
+  qIndex++;
+  loadQuestion();
+});
+document.getElementById('modal-next-btn').textContent='Next Question / 下一題 →';
+
+// ==================== RESULT 1 ====================
+function endLevel1(){
+  clearInterval(timerInt);
+  document.getElementById('final-score').textContent=score;
+  // leaderboard
+  let lb=JSON.parse(localStorage.getItem('tw_vocab_lb')||'[]');
+  lb.push({name:playerName,score,time:Date.now()});
+  lb.sort((a,b)=>b.score-a.score||a.time-b.time);
+  lb=lb.slice(0,10);
+  localStorage.setItem('tw_vocab_lb',JSON.stringify(lb));
+  const medals=['🥇','🥈','🥉'];
+  const list=document.getElementById('leaderboard-list');
+  list.innerHTML='';
+  lb.slice(0,5).forEach((e,i)=>{
+    const row=document.createElement('div');
+    row.className='lb-row'+(e.name===playerName&&e.score===score?' me':'');
+    row.innerHTML=`<span class="lb-rank">${medals[i]||'#'+(i+1)}</span>
+      <span class="lb-name">${e.name}</span>
+      <span class="lb-pts">${e.score}pts</span>`;
+    list.appendChild(row);
+  });
+  showScreen('screen-result1');
+}
+
+document.getElementById('btn-to-level2').addEventListener('click',startLevel2);
+
+// ==================== LEVEL 2 - MARIO ====================
+const C=document.getElementById('mario-canvas');
+const CTX=C.getContext('2d');
+
+let marioGame={};
+let animFrame=null;
+
+function resizeCanvas(){
+  // Use the parent wrapper size for accurate pixel dimensions
+  const wrap=C.parentElement;
+  C.width=wrap.offsetWidth||window.innerWidth;
+  C.height=wrap.offsetHeight||window.innerHeight;
+}
+
+function startLevel2(){
+  showScreen('screen-level2');
+  setTimeout(()=>{resizeCanvas();initMario();},100);
+}
+
+function initMario(){
+  cancelAnimationFrame(animFrame);
+  resizeCanvas();
+  const W=C.width,H=C.height;
+  const ground=H*0.78;
+
+  marioGame={
+    W,H,ground,
+    marioX:W*0.15,
+    marioY:ground-48,
+    marioVY:0,
+    jumping:false,
+    lives:3,
+    distance:0,
+    totalDist:600,// win at 600m
+    speed:3,
+    gameOver:false,
+    won:false,
+    paused:false,
+    frameCount:0,
+    bgOffset:0,
+    obstacles:[],
+    nextObstacleAt:200,
+    vocabPool:shuffle(VOCAB),
+    vocabIdx:0,
+    currentObstacle:null,
+    marioFrame:0,
+    marioFrameTimer:0,
+    answeredCorrect:false,
+  };
+
+  document.getElementById('gameover-screen').classList.remove('show');
+  document.getElementById('win-screen').classList.remove('show');
+  document.getElementById('quiz-popup').classList.remove('show');
+  updateMarioUI();
+
+  document.addEventListener('keydown',marioKeyDown);
+  C.addEventListener('click',marioJump);
+
+  gameLoop();
+}
+
+function marioKeyDown(e){
+  if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();marioJump();}
+}
+function marioJump(){
+  if(marioGame.paused||marioGame.gameOver||marioGame.won)return;
+  if(!marioGame.jumping){
+    marioGame.marioVY=-16;
+    marioGame.jumping=true;
+  }
+}
+
+function gameLoop(){
+  if(marioGame.gameOver||marioGame.won)return;
+  update();
+  draw();
+  animFrame=requestAnimationFrame(gameLoop);
+}
+
+function update(){
+  const g=marioGame;
+  if(g.paused)return;
+  g.frameCount++;
+  g.bgOffset=(g.bgOffset+g.speed)%(C.width);
+  g.distance+=g.speed/60;
+
+  // Mario physics
+  g.marioVY+=0.7;
+  g.marioY+=g.marioVY;
+  if(g.marioY>=g.ground-48){g.marioY=g.ground-48;g.marioVY=0;g.jumping=false;}
+
+  // Spawn obstacles
+  if(g.distance*60>g.nextObstacleAt){
+    const v=g.vocabPool[g.vocabIdx%g.vocabPool.length];
+    g.vocabIdx++;
+    g.obstacles.push({x:C.width+60,w:52,h:60,word:v,hit:false});
+    g.nextObstacleAt+=180+Math.random()*120;
+  }
+
+  // Move obstacles
+  for(let i=g.obstacles.length-1;i>=0;i--){
+    const ob=g.obstacles[i];
+    if(!g.paused)ob.x-=g.speed;
+    if(ob.x<-80){g.obstacles.splice(i,1);}
+
+    // Collision
+    if(!ob.hit&&ob.x<g.marioX+36&&ob.x+ob.w>g.marioX+8&&
+       g.marioY+48>g.ground-ob.h&&g.marioY<g.ground){
+      ob.hit=true;
+      g.paused=true;
+      g.currentObstacle=ob;
+      showQuestion(ob.word,ob);
     }
+  }
 
-    options.sort(() => Math.random() - 0.5);
+  // Win check
+  if(g.distance>=g.totalDist){
+    g.won=true;
+    document.getElementById('win-screen').classList.add('show');
+    document.getElementById('win-score').textContent=Math.floor(g.distance)+'m • '+score+'pts';
+  }
 
-    const optionsDiv = document.getElementById("options");
-    optionsDiv.innerHTML = "";
+  // Animate mario
+  g.marioFrameTimer++;
+  if(g.marioFrameTimer>6){g.marioFrame=(g.marioFrame+1)%2;g.marioFrameTimer=0;}
 
-    options.forEach(opt => {
-        const btn = document.createElement("div");
-        btn.className = "option";
-        btn.innerText = opt;
-
-        btn.onclick = () => checkAnswer(opt);
-
-        optionsDiv.appendChild(btn);
-    });
+  updateMarioUI();
 }
 
-function checkAnswer(selected) {
-    if (selected === currentAnswer) {
-        score += 10;
+function draw(){
+  const g=marioGame;
+  CTX.clearRect(0,0,C.width,C.height);
+
+  // Ground
+  CTX.fillStyle='#8B4513';
+  CTX.fillRect(0,g.ground,C.width,C.height-g.ground);
+  CTX.fillStyle='#228B22';
+  CTX.fillRect(0,g.ground-4,C.width,8);
+
+  // Striped ground detail
+  CTX.fillStyle='#7a3b10';
+  for(let x=(-(g.bgOffset%80));x<C.width;x+=80){
+    CTX.fillRect(x,g.ground+10,40,4);
+  }
+
+  // Distance marker & flag at end
+  const flagX=C.width-(g.totalDist-g.distance)*g.speed*10;
+  if(flagX>0&&flagX<C.width){
+    // Flag pole
+    CTX.fillStyle='#555';CTX.fillRect(flagX,g.ground-100,4,100);
+    CTX.fillStyle='var(--red)';CTX.fillText('🏁',flagX-10,g.ground-95);
+    CTX.font='30px serif';CTX.fillText('🏁',flagX-15,g.ground-90);
+  }
+
+  // Mario
+  drawMario(g.marioX, g.marioY, g.marioFrame);
+
+  // Obstacles
+  g.obstacles.forEach(ob=>{
+    if(!ob.hit){
+      // Block
+      CTX.fillStyle='#b85c00';
+      CTX.beginPath();
+      roundRect(CTX,ob.x,g.ground-ob.h,ob.w,ob.h,10);
+      CTX.fill();
+      CTX.fillStyle='#ff8c00';
+      CTX.beginPath();
+      roundRect(CTX,ob.x+4,g.ground-ob.h+4,ob.w-8,ob.h/2,6);
+      CTX.fill();
+      // Word on block
+      CTX.fillStyle='#fff';
+      CTX.font='bold '+Math.min(18,46/ob.word.word.length*2)+'px Noto Sans TC';
+      CTX.textAlign='center';
+      CTX.textBaseline='middle';
+      CTX.fillText(ob.word.word,ob.x+ob.w/2,g.ground-ob.h/2);
+      CTX.textAlign='left';CTX.textBaseline='top';
+    }
+  });
+
+  // Progress bar
+  const pct=Math.min(g.distance/g.totalDist,1);
+  CTX.fillStyle='rgba(0,0,0,.3)';CTX.fillRect(C.width*0.25,14,C.width*0.5,10);
+  CTX.fillStyle=`hsl(${120*pct},80%,55%)`;
+  CTX.fillRect(C.width*0.25,14,C.width*0.5*pct,10);
+  CTX.strokeStyle='rgba(255,255,255,.4)';CTX.lineWidth=1;
+  CTX.strokeRect(C.width*0.25,14,C.width*0.5,10);
+}
+
+function drawMario(x,y,frame){
+  const CTX2=CTX;
+  // Body
+  CTX2.fillStyle='#e74c3c';
+  CTX2.fillRect(x+4,y+12,40,28);
+  // Overalls
+  CTX2.fillStyle='#2c3e7a';
+  CTX2.fillRect(x+6,y+26,36,14);
+  // Head
+  CTX2.fillStyle='#f5c5a0';
+  CTX2.beginPath();CTX2.ellipse(x+24,y+10,18,14,0,0,Math.PI*2);CTX2.fill();
+  // Hat
+  CTX2.fillStyle='#e74c3c';
+  CTX2.fillRect(x+8,y-4,32,12);
+  CTX2.fillRect(x+4,y+4,38,6);
+  // Eyes
+  CTX2.fillStyle='#222';
+  CTX2.fillRect(x+28,y+8,5,5);
+  // Mustache
+  CTX2.fillStyle='#5d3a1a';
+  CTX2.fillRect(x+18,y+16,20,4);
+  // Legs (animate)
+  CTX2.fillStyle='#2c3e7a';
+  if(frame===0){
+    CTX2.fillRect(x+8,y+40,14,14);
+    CTX2.fillRect(x+26,y+40,14,8);
+  } else {
+    CTX2.fillRect(x+8,y+40,14,8);
+    CTX2.fillRect(x+26,y+40,14,14);
+  }
+  // Shoes
+  CTX2.fillStyle='#5d3a1a';
+  CTX2.fillRect(x+6,y+52,18,6);
+  CTX2.fillRect(x+24,y+52,18,6);
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function updateMarioUI(){
+  const g=marioGame;
+  document.getElementById('mario-score-display').textContent=Math.floor(g.distance);
+  const hearts='❤️'.repeat(g.lives)+'🖤'.repeat(Math.max(0,3-g.lives));
+  document.getElementById('mario-lives-display').textContent=hearts;
+}
+
+// ==================== MARIO QUESTIONS ====================
+let popupAnswer=null;
+function showQuestion(vocab, ob){
+  popupAnswer=null;
+  const popup=document.getElementById('quiz-popup');
+  document.getElementById('popup-hanzi').textContent=vocab.word;
+  speak(vocab.word);
+
+  document.getElementById('popup-audio-btn').onclick=()=>speak(vocab.word);
+
+  const opts=rand4(vocab,VOCAB);
+  const container=document.getElementById('popup-options');
+  container.innerHTML='';
+  opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='popup-opt';
+    b.textContent=opt.meaning+'\n'+opt.pinyin;
+    b.style.whiteSpace='pre-line';
+    b.addEventListener('click',()=>answerMarioQ(opt,vocab,ob,container));
+    container.appendChild(b);
+  });
+  popup.classList.add('show');
+}
+
+function answerMarioQ(chosen,vocab,ob,container){
+  if(popupAnswer!==null)return;
+  popupAnswer=chosen.word;
+  const correct=chosen.word===vocab.word;
+
+  container.querySelectorAll('.popup-opt').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent.includes(vocab.meaning))b.classList.add('correct');
+    else if(b.textContent.includes(chosen.meaning)&&!correct)b.classList.add('wrong');
+  });
+
+  setTimeout(()=>{
+    document.getElementById('quiz-popup').classList.remove('show');
+    const g=marioGame;
+    if(correct){
+      score+=3;
+      // Bounce mario over obstacle
+      g.marioVY=-14;
+      g.jumping=true;
+      ob.x=-200;// remove
     } else {
-        score -= 5;
+      g.lives--;
+      updateMarioUI();
+      shakeCanvas();
+      if(g.lives<=0){
+        g.gameOver=true;
+        document.getElementById('go-distance').textContent=Math.floor(g.distance);
+        setTimeout(()=>document.getElementById('gameover-screen').classList.add('show'),400);
+        return;
+      }
+      // Remove obstacle
+      ob.x=-200;
     }
-    updateScore();
-    nextQuestion();
+    g.paused=false;
+    gameLoop();
+  },1200);
 }
 
-function updateScore() {
-    document.getElementById("score").innerText = "分數：" + score;
+function shakeCanvas(){
+  C.style.transition='transform .05s';
+  let i=0;const sh=setInterval(()=>{
+    C.style.transform=`translateX(${(i%2===0?8:-8)}px)`;
+    i++;if(i>6){clearInterval(sh);C.style.transform='none';}
+  },50);
 }
 
-function endGame() {
-    clearInterval(timerInterval);
-
-    document.getElementById("gameScreen").style.display = "none";
-    document.getElementById("endScreen").style.display = "block";
-
-    document.getElementById("finalScore").innerText = score;
-
-    let highScore = getHighScore();
-    if (score > highScore) {
-        setHighScore(score);
-        document.getElementById("highScore").innerText = score;
-    }
+function restartMario(){
+  document.removeEventListener('keydown',marioKeyDown);
+  C.removeEventListener('click',marioJump);
+  score=0;
+  initMario();
+}
+function goHome(){
+  document.removeEventListener('keydown',marioKeyDown);
+  C.removeEventListener('click',marioJump);
+  cancelAnimationFrame(animFrame);
+  marioGame.gameOver=true;
+  document.getElementById('player-name').value='';
+  showScreen('screen-home');
 }
 
+window.addEventListener('resize',()=>{if(document.getElementById('screen-level2').classList.contains('active')){resizeCanvas();}});
 </script>
-
 </body>
 </html>
