@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣生詞配對遊戲 - Taiwan Vocab Match</title>
+    <title>探索台灣：生詞配對遊戲</title>
     <style>
         :root {
-            --primary-color: #2d5a27; /* 台灣山脈綠 */
-            --accent-color: #e94e1b;   /* 活力橘 */
-            --bg-color: #f4f1de;      /* 復古米白 */
-            --card-back: #3d405b;     /* 深藍灰色 */
+            --primary-color: #3a5a40; /* 森林綠 */
+            --accent-color: #d4a373;   /* 暖沙色 */
+            --bg-color: #faedcd;      /* 宣紙色 */
         }
 
         body {
@@ -25,34 +24,36 @@
 
         h1 {
             color: var(--primary-color);
-            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .stats {
             margin-bottom: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.1rem;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* 遊戲網格佈局：3x4 或 4x3 */
+        /* 遊戲網格：手機 3x4, 電腦 4x6 或 6x4 */
         .game-board {
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-gap: 15px;
+            grid-template-columns: repeat(3, 90px);
+            grid-gap: 12px;
             perspective: 1000px;
         }
 
         @media (min-width: 600px) {
             .game-board {
-                grid-template-columns: repeat(4, 120px);
-                grid-gap: 20px;
+                grid-template-columns: repeat(6, 110px);
+                grid-gap: 15px;
             }
         }
 
-        /* 卡片設計 */
         .card {
-            width: 100px;
-            height: 140px;
+            width: 90px;
+            height: 120px;
             position: relative;
             transform-style: preserve-3d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -61,8 +62,8 @@
 
         @media (min-width: 600px) {
             .card {
-                width: 120px;
-                height: 160px;
+                width: 110px;
+                height: 150px;
             }
         }
 
@@ -72,7 +73,7 @@
 
         .card.matched {
             transform: rotateY(180deg) scale(0.95);
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: default;
         }
 
@@ -85,121 +86,120 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border: 2px solid white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 3px solid white;
+            box-sizing: border-box;
         }
 
-        /* 卡片背面 */
+        /* 卡片背面：台灣風景圖 */
         .card-back {
-            background-color: var(--card-back);
-            color: white;
-            font-size: 2rem;
+            background-image: url('https://images.unsplash.com/photo-1552035391-7649f807206b?auto=format&fit=crop&q=80&w=400');
+            background-size: cover;
+            background-position: center;
+            background-color: #ccc;
         }
 
         /* 卡片正面 */
         .card-front {
             background-color: white;
             transform: rotateY(180deg);
-            padding: 10px;
+            padding: 8px;
             text-align: center;
-            box-sizing: border-box;
         }
 
         .card-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
         }
 
         .card-word {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: bold;
             color: var(--primary-color);
-            word-break: break-all;
         }
 
-        /* 按鈕樣式 */
         .reset-btn {
             margin-top: 30px;
-            padding: 10px 25px;
+            padding: 12px 30px;
             font-size: 1rem;
-            background-color: var(--accent-color);
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 25px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.2s;
+            font-weight: bold;
         }
 
         .reset-btn:hover {
-            transform: scale(1.05);
+            filter: brightness(1.2);
         }
     </style>
 </head>
 <body>
 
-    <h1>🇹🇼 台灣生詞配對</h1>
+    <h1>🏮 台灣印象：生詞挑戰</h1>
     
     <div class="stats">
-        步數：<span id="moves">0</span> | 已配對：<span id="matches">0</span>/6
+        嘗試次數：<span id="moves">0</span> | 已配對：<span id="matches">0</span> / 12
     </div>
 
-    <div class="game-board" id="board">
-        </div>
+    <div class="game-board" id="board"></div>
 
-    <button class="reset-btn" onclick="initGame()">重新開始遊戲</button>
+    <button class="reset-btn" onclick="initGame()">重新洗牌開始</button>
 
     <script>
-        // 1. 定義生詞資料 (6 組，共 12 張)
-        const items = [
-            { word: '珍珠奶茶', icon: '🧋', id: 1 },
-            { word: '台北 101', icon: '🗼', id: 2 },
-            { word: '鳳梨酥', icon: '🍍', id: 3 },
-            { word: '藍白拖', icon: '🩴', id: 4 },
-            { word: '小籠包', icon: '🥟', id: 5 },
-            { word: '天燈', icon: '🏮', id: 6 }
+        // 12 組全新的台灣特色生詞
+        const vocabList = [
+            { word: '阿里山火車', icon: '🚂', id: 1 },
+            { word: '日月潭', icon: '🛶', id: 2 },
+            { word: '大腸包小腸', icon: '🌭', id: 3 },
+            { word: '台灣黑熊', icon: '🐻', id: 4 },
+            { word: '機車瀑布', icon: '🛵', id: 5 },
+            { word: '中秋烤肉', icon: '🔥', id: 6 },
+            { word: '野柳女王頭', icon: '🗿', id: 7 },
+            { word: '布袋戲', icon: '🎎', id: 8 },
+            { word: '蚵仔煎', icon: '🍳', id: 9 },
+            { word: '太魯閣', icon: '⛰️', id: 10 },
+            { word: '垃圾車音樂', icon: '🎶', id: 11 },
+            { word: '愛玉冰', icon: '🍋', id: 12 }
         ];
 
-        let cards = [];
         let flippedCards = [];
         let moves = 0;
         let matchedCount = 0;
         let canFlip = true;
 
-        // 2. 初始化遊戲
         function initGame() {
             const board = document.getElementById('board');
             board.innerHTML = '';
             flippedCards = [];
             moves = 0;
             matchedCount = 0;
-            canFlip = true;
             document.getElementById('moves').textContent = moves;
             document.getElementById('matches').textContent = matchedCount;
 
-            // 建立配對組 (一張顯示圖片，一張顯示文字)
             const deck = [];
-            items.forEach(item => {
-                // 圖片卡
-                deck.push({ ...item, type: 'icon' });
-                // 文字卡
-                deck.push({ ...item, type: 'word' });
+            vocabList.forEach(item => {
+                deck.push({ ...item, display: 'icon' });
+                deck.push({ ...item, display: 'word' });
             });
 
-            // 洗牌
-            deck.sort(() => Math.random() - 0.5);
+            // Fisher-Yates 洗牌
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
 
-            // 渲染卡片
-            deck.forEach((data, index) => {
+            deck.forEach(data => {
                 const card = document.createElement('div');
                 card.classList.add('card');
                 card.dataset.id = data.id;
-                card.dataset.index = index;
 
                 card.innerHTML = `
-                    <div class="card-face card-back">?</div>
+                    <div class="card-face card-back"></div>
                     <div class="card-face card-front">
-                        ${data.type === 'icon' 
+                        ${data.display === 'icon' 
                             ? `<div class="card-icon">${data.icon}</div>` 
                             : `<div class="card-word">${data.word}</div>`}
                     </div>
@@ -210,7 +210,6 @@
             });
         }
 
-        // 3. 翻牌邏輯
         function flipCard() {
             if (!canFlip || this.classList.contains('flipped') || this.classList.contains('matched')) return;
 
@@ -224,36 +223,31 @@
             }
         }
 
-        // 4. 檢查是否配對
         function checkMatch() {
             canFlip = false;
-            const [card1, card2] = flippedCards;
-            const isMatch = card1.dataset.id === card2.dataset.id;
+            const [c1, c2] = flippedCards;
+            const isMatch = c1.dataset.id === c2.dataset.id;
 
             if (isMatch) {
                 setTimeout(() => {
-                    card1.classList.add('matched');
-                    card2.classList.add('matched');
+                    c1.classList.add('matched');
+                    c2.classList.add('matched');
                     matchedCount++;
                     document.getElementById('matches').textContent = matchedCount;
                     flippedCards = [];
                     canFlip = true;
-
-                    if (matchedCount === items.length) {
-                        alert(`恭喜完成！總共花了 ${moves} 步。`);
-                    }
-                }, 600);
+                    if (matchedCount === 12) alert('太厲害了！你對台灣非常了解喔！');
+                }, 500);
             } else {
                 setTimeout(() => {
-                    card1.classList.remove('flipped');
-                    card2.classList.remove('flipped');
+                    c1.classList.remove('flipped');
+                    c2.classList.remove('flipped');
                     flippedCards = [];
                     canFlip = true;
                 }, 1000);
             }
         }
 
-        // 啟動
         initGame();
     </script>
 </body>
