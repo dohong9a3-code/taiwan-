@@ -1,260 +1,205 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣生詞配對遊戲 - Taiwan Vocab Match</title>
-    <style>
-        :root {
-            --primary-color: #2d5a27; /* 台灣山脈綠 */
-            --accent-color: #e94e1b;   /* 活力橘 */
-            --bg-color: #f4f1de;      /* 復古米白 */
-            --card-back: #3d405b;     /* 深藍灰色 */
-        }
+<meta charset="UTF-8">
+<title>漢字快打王</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f0f8ff;
+    margin: 0;
+}
 
-        body {
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
+.container {
+    padding: 20px;
+}
 
-        h1 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
+h1 {
+    font-size: 40px;
+}
 
-        .stats {
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
+#pinyin {
+    font-size: 36px;
+    margin: 20px;
+}
 
-        /* 遊戲網格佈局：3x4 或 4x3 */
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-gap: 15px;
-            perspective: 1000px;
-        }
+.option {
+    display: block;
+    margin: 10px auto;
+    padding: 15px;
+    width: 200px;
+    background: white;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 24px;
+    border: 2px solid #ccc;
+}
 
-        @media (min-width: 600px) {
-            .game-board {
-                grid-template-columns: repeat(4, 120px);
-                grid-gap: 20px;
-            }
-        }
+.option:hover {
+    background: #e0f7fa;
+}
 
-        /* 卡片設計 */
-        .card {
-            width: 100px;
-            height: 140px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
+#score, #timer {
+    font-size: 20px;
+    margin: 10px;
+}
 
-        @media (min-width: 600px) {
-            .card {
-                width: 120px;
-                height: 160px;
-            }
-        }
-
-        .card.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card.matched {
-            transform: rotateY(180deg) scale(0.95);
-            opacity: 0.7;
-            cursor: default;
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border: 2px solid white;
-        }
-
-        /* 卡片背面 */
-        .card-back {
-            background-color: var(--card-back);
-            color: white;
-            font-size: 2rem;
-        }
-
-        /* 卡片正面 */
-        .card-front {
-            background-color: white;
-            transform: rotateY(180deg);
-            padding: 10px;
-            text-align: center;
-            box-sizing: border-box;
-        }
-
-        .card-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-
-        .card-word {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            word-break: break-all;
-        }
-
-        /* 按鈕樣式 */
-        .reset-btn {
-            margin-top: 30px;
-            padding: 10px 25px;
-            font-size: 1rem;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .reset-btn:hover {
-            transform: scale(1.05);
-        }
-    </style>
+button {
+    padding: 10px 20px;
+    font-size: 20px;
+    cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
-    <h1>🇹🇼 台灣生詞配對</h1>
-    
-    <div class="stats">
-        步數：<span id="moves">0</span> | 已配對：<span id="matches">0</span>/6
+<div class="container">
+
+    <h1>漢字快打王</h1>
+
+    <div id="startScreen">
+        <p>最高分：<span id="highScore">0</span></p>
+        <button onclick="startGame()">開始遊戲</button>
     </div>
 
-    <div class="game-board" id="board">
-        </div>
+    <div id="gameScreen" style="display:none;">
+        <div id="timer">時間：60</div>
+        <div id="score">分數：0</div>
+        <div id="pinyin"></div>
+        <div id="options"></div>
+    </div>
 
-    <button class="reset-btn" onclick="initGame()">重新開始遊戲</button>
+    <div id="endScreen" style="display:none;">
+        <h2>遊戲結束！</h2>
+        <p>你的分數：<span id="finalScore"></span></p>
+        <button onclick="startGame()">再玩一次</button>
+    </div>
 
-    <script>
-        // 1. 定義生詞資料 (6 組，共 12 張)
-        const items = [
-            { word: '珍珠奶茶', icon: '🧋', id: 1 },
-            { word: '台北 101', icon: '🗼', id: 2 },
-            { word: '鳳梨酥', icon: '🍍', id: 3 },
-            { word: '藍白拖', icon: '🩴', id: 4 },
-            { word: '小籠包', icon: '🥟', id: 5 },
-            { word: '天燈', icon: '🏮', id: 6 }
-        ];
+</div>
 
-        let cards = [];
-        let flippedCards = [];
-        let moves = 0;
-        let matchedCount = 0;
-        let canFlip = true;
+<script>
 
-        // 2. 初始化遊戲
-        function initGame() {
-            const board = document.getElementById('board');
-            board.innerHTML = '';
-            flippedCards = [];
-            moves = 0;
-            matchedCount = 0;
-            canFlip = true;
-            document.getElementById('moves').textContent = moves;
-            document.getElementById('matches').textContent = matchedCount;
+const wordList = [
+  { pinyin: "nǐ hǎo", hanzi: "你好" },
+  { pinyin: "xiè xie", hanzi: "謝謝" },
+  { pinyin: "zài jiàn", hanzi: "再見" },
+  { pinyin: "shì", hanzi: "是" },
+  { pinyin: "bù shì", hanzi: "不是" },
+  { pinyin: "wǒ", hanzi: "我" },
+  { pinyin: "nǐ", hanzi: "你" },
+  { pinyin: "tā", hanzi: "他" },
+  { pinyin: "shuǐ", hanzi: "水" },
+  { pinyin: "fàn", hanzi: "飯" },
+  { pinyin: "chī", hanzi: "吃" },
+  { pinyin: "hē", hanzi: "喝" },
+  { pinyin: "xué xiào", hanzi: "學校" },
+  { pinyin: "lǎo shī", hanzi: "老師" },
+  { pinyin: "xué shēng", hanzi: "學生" }
+];
 
-            // 建立配對組 (一張顯示圖片，一張顯示文字)
-            const deck = [];
-            items.forEach(item => {
-                // 圖片卡
-                deck.push({ ...item, type: 'icon' });
-                // 文字卡
-                deck.push({ ...item, type: 'word' });
-            });
+let score = 0;
+let time = 60;
+let timerInterval;
+let currentAnswer = "";
 
-            // 洗牌
-            deck.sort(() => Math.random() - 0.5);
+function getHighScore() {
+    return localStorage.getItem("highScore") || 0;
+}
 
-            // 渲染卡片
-            deck.forEach((data, index) => {
-                const card = document.createElement('div');
-                card.classList.add('card');
-                card.dataset.id = data.id;
-                card.dataset.index = index;
+function setHighScore(newScore) {
+    localStorage.setItem("highScore", newScore);
+}
 
-                card.innerHTML = `
-                    <div class="card-face card-back">?</div>
-                    <div class="card-face card-front">
-                        ${data.type === 'icon' 
-                            ? `<div class="card-icon">${data.icon}</div>` 
-                            : `<div class="card-word">${data.word}</div>`}
-                    </div>
-                `;
+document.getElementById("highScore").innerText = getHighScore();
 
-                card.addEventListener('click', flipCard);
-                board.appendChild(card);
-            });
+function startGame() {
+    score = 0;
+    time = 60;
+
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("endScreen").style.display = "none";
+    document.getElementById("gameScreen").style.display = "block";
+
+    updateScore();
+    startTimer();
+    nextQuestion();
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        time--;
+        document.getElementById("timer").innerText = "時間：" + time;
+
+        if (time <= 0) {
+            endGame();
         }
+    }, 1000);
+}
 
-        // 3. 翻牌邏輯
-        function flipCard() {
-            if (!canFlip || this.classList.contains('flipped') || this.classList.contains('matched')) return;
+function nextQuestion() {
+    const random = wordList[Math.floor(Math.random() * wordList.length)];
+    currentAnswer = random.hanzi;
 
-            this.classList.add('flipped');
-            flippedCards.push(this);
+    document.getElementById("pinyin").innerText = random.pinyin;
 
-            if (flippedCards.length === 2) {
-                moves++;
-                document.getElementById('moves').textContent = moves;
-                checkMatch();
-            }
+    let options = [random.hanzi];
+
+    while (options.length < 3) {
+        let rand = wordList[Math.floor(Math.random() * wordList.length)].hanzi;
+        if (!options.includes(rand)) {
+            options.push(rand);
         }
+    }
 
-        // 4. 檢查是否配對
-        function checkMatch() {
-            canFlip = false;
-            const [card1, card2] = flippedCards;
-            const isMatch = card1.dataset.id === card2.dataset.id;
+    options.sort(() => Math.random() - 0.5);
 
-            if (isMatch) {
-                setTimeout(() => {
-                    card1.classList.add('matched');
-                    card2.classList.add('matched');
-                    matchedCount++;
-                    document.getElementById('matches').textContent = matchedCount;
-                    flippedCards = [];
-                    canFlip = true;
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
 
-                    if (matchedCount === items.length) {
-                        alert(`恭喜完成！總共花了 ${moves} 步。`);
-                    }
-                }, 600);
-            } else {
-                setTimeout(() => {
-                    card1.classList.remove('flipped');
-                    card2.classList.remove('flipped');
-                    flippedCards = [];
-                    canFlip = true;
-                }, 1000);
-            }
-        }
+    options.forEach(opt => {
+        const btn = document.createElement("div");
+        btn.className = "option";
+        btn.innerText = opt;
 
-        // 啟動
-        initGame();
-    </script>
+        btn.onclick = () => checkAnswer(opt);
+
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected) {
+    if (selected === currentAnswer) {
+        score += 10;
+    } else {
+        score -= 5;
+    }
+    updateScore();
+    nextQuestion();
+}
+
+function updateScore() {
+    document.getElementById("score").innerText = "分數：" + score;
+}
+
+function endGame() {
+    clearInterval(timerInterval);
+
+    document.getElementById("gameScreen").style.display = "none";
+    document.getElementById("endScreen").style.display = "block";
+
+    document.getElementById("finalScore").innerText = score;
+
+    let highScore = getHighScore();
+    if (score > highScore) {
+        setHighScore(score);
+        document.getElementById("highScore").innerText = score;
+    }
+}
+
+</script>
+
 </body>
 </html>
