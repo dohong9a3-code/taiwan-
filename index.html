@@ -245,7 +245,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--dark);color:#fff;min
 <div id="screen-level2" class="screen">
   <div class="mario-ui">
     <div class="mario-score">🏃 <span id="mario-score-display">0</span>m</div>
-    <div>Level 2: Mario 冒險</div>
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <div>Level 2: Mario 冒險</div>
+      <div id="mario-timer-display" style="color:var(--yellow); font-weight:bold; font-size:1.1rem; margin-top:4px;">⏱ 05:00</div>
+    </div>
     <div class="mario-lives" id="mario-lives-display">❤️❤️❤️</div>
   </div>
   <div class="mario-canvas-wrap">
@@ -493,6 +496,7 @@ function initMario(){
   const W=C.width,H=C.height;
   const ground=H*0.78;
 
+  clearInterval(window.marioTimerInt);
   marioGame={
     W,H,ground,
     marioX:W*0.15,
@@ -516,15 +520,31 @@ function initMario(){
     marioFrame:0,
     marioFrameTimer:0,
     answeredCorrect:false,
+    timeLeft:300,
   };
 
   document.getElementById('gameover-screen').classList.remove('show');
+  document.querySelector('#gameover-screen .overlay-sub').textContent = 'Mario has run out of lives...';
   document.getElementById('win-screen').classList.remove('show');
   document.getElementById('quiz-popup').classList.remove('show');
   updateMarioUI();
 
   document.addEventListener('keydown',marioKeyDown);
   C.addEventListener('click',marioJump);
+
+  window.marioTimerInt = setInterval(() => {
+    if(!marioGame.paused && !marioGame.gameOver && !marioGame.won) {
+      marioGame.timeLeft--;
+      updateMarioUI();
+      if(marioGame.timeLeft <= 0) {
+        clearInterval(window.marioTimerInt);
+        marioGame.gameOver = true;
+        document.getElementById('go-distance').textContent=Math.floor(marioGame.distance);
+        document.querySelector('#gameover-screen .overlay-sub').textContent = 'Time is up! 時間到！';
+        setTimeout(()=>document.getElementById('gameover-screen').classList.add('show'),400);
+      }
+    }
+  }, 1000);
 
   gameLoop();
 }
@@ -706,6 +726,12 @@ function updateMarioUI(){
   document.getElementById('mario-score-display').textContent=Math.floor(g.distance);
   const hearts='❤️'.repeat(g.lives)+'🖤'.repeat(Math.max(0,3-g.lives));
   document.getElementById('mario-lives-display').textContent=hearts;
+  
+  if (g.timeLeft !== undefined) {
+    const mins = Math.floor(g.timeLeft / 60);
+    const secs = g.timeLeft % 60;
+    document.getElementById('mario-timer-display').textContent = `⏱ ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
 }
 
 // ==================== MARIO QUESTIONS ====================
@@ -788,6 +814,7 @@ function goHome(){
   document.removeEventListener('keydown',marioKeyDown);
   C.removeEventListener('click',marioJump);
   cancelAnimationFrame(animFrame);
+  clearInterval(window.marioTimerInt);
   marioGame.gameOver=true;
   document.getElementById('player-name').value='';
   showScreen('screen-home');
